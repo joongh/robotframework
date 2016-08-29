@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,16 +15,20 @@
 
 """Implements the core test execution logic.
 
-The public API of this package consists of the following two classes:
-
-* :class:`~robot.running.model.TestSuite` for creating an executable
-  test suite structure programmatically.
+The main public entry points of this package are of the following two classes:
 
 * :class:`~robot.running.builder.TestSuiteBuilder` for creating executable
   test suites based on existing test case files and directories.
 
+* :class:`~robot.running.model.TestSuite` for creating an executable
+  test suite structure programmatically.
+
 It is recommended to import both of these classes via the :mod:`robot.api`
-package like in the examples below.
+package like in the examples below. Also :class:`~robot.running.model.TestCase`
+and :class:`~robot.running.model.Keyword` classes used internally by the
+:class:`~robot.running.model.TestSuite` class are part of the public API.
+In those rare cases where these classes are needed directly, they can be
+imported from this package.
 
 This package and especially all public code was rewritten in Robot Framework
 2.8 to make it easier to generate and execute test suites programmatically.
@@ -67,8 +72,8 @@ Not that complicated either, especially considering the flexibility. Notice
 that the suite created based on the file could also be edited further using
 the same API.
 
-Now that we have a test suite ready, let's
-:meth:`run <robot.running.model.TestSuite.run>` it and verify that the returned
+Now that we have a test suite ready, let's :meth:`execute it
+<robot.running.model.TestSuite.run>` and verify that the returned
 :class:`~robot.result.executionresult.Result` object contains correct
 information::
 
@@ -93,9 +98,6 @@ the results is possible using the
     ResultWriter(result).write_results(report='skynet.html', log=None)
     # Generating log files requires processing the earlier generated output XML.
     ResultWriter('skynet.xml').write_results()
-
-Package methods
----------------
 """
 
 from .builder import TestSuiteBuilder, ResourceFileBuilder

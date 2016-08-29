@@ -10,10 +10,9 @@
   Version |version|
 ---------------------
 
-| Copyright |copy| 2008-2015 Nokia Solutions and Networks
-| Licensed under the `Creative Commons Attribution 3.0 Unported`__ license
-
-__ http://creativecommons.org/licenses/by/3.0/
+| Copyright |copy| 2008-2015 Nokia Networks
+| Copyright |copy| 2016- Robot Framework Foundation
+| Licensed under the `Creative Commons Attribution 3.0 Unported`_ license
 
 .. contents:: Table of Contents
    :depth: 2
@@ -115,6 +114,8 @@ __ http://creativecommons.org/licenses/by/3.0/
 
 .. 1. Getting started
 
+.. _Creative Commons Attribution 3.0 Unported: http://creativecommons.org/licenses/by/3.0
+.. _Apache License 2.0: http://apache.org/licenses/LICENSE-2.0
 .. _mailing list: `Mailing lists`_
 
 .. 2. Creating test data
@@ -196,7 +197,6 @@ __ http://creativecommons.org/licenses/by/3.0/
 
 .. _library API: `Creating test libraries`_
 .. _static library API: `Creating static keywords`_
-.. _listener interface: `Using listener interface`_
 .. _listener: `listener interface`_
 .. _listeners: `listener interface`_
 
@@ -210,7 +210,20 @@ __ http://creativecommons.org/licenses/by/3.0/
 .. _download page: http://downloads.robotframework.org
 .. _version control system: http://source.robotframework.org
 .. _previous User Guides: http://robotframework.org/robotframework/#user-guide
+
+.. API docs
+
 .. _API documentation: http://robot-framework.readthedocs.org
+.. _visitor interface: http://robot-framework.readthedocs.org/en/master/autodoc/robot.model.html#module-robot.model.visitor
+.. _running.TestSuite: http://robot-framework.readthedocs.org/en/master/autodoc/robot.running.html#robot.running.model.TestSuite
+.. _running.TestCase: http://robot-framework.readthedocs.org/en/master/autodoc/robot.running.html#robot.running.model.TestCase
+.. _running.Keyword: http://robot-framework.readthedocs.org/en/master/autodoc/robot.running.html#robot.running.model.Keyword
+.. _running model: http://robot-framework.readthedocs.org/en/master/autodoc/robot.running.html#module-robot.running.model
+.. _result.TestSuite: http://robot-framework.readthedocs.org/en/master/autodoc/robot.result.html#robot.result.model.TestSuite
+.. _result.TestCase: http://robot-framework.readthedocs.org/en/master/autodoc/robot.result.html#robot.result.model.TestCase
+.. _result.Keyword: http://robot-framework.readthedocs.org/en/master/autodoc/robot.result.html#robot.result.model.Keyword
+.. _result.Message: http://robot-framework.readthedocs.org/en/master/autodoc/robot.result.html#robot.result.model.Message
+.. _result model: http://robot-framework.readthedocs.org/en/master/autodoc/robot.result.html#module-robot.result.model
 
 .. External link targets
 

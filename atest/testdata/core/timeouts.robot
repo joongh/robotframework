@@ -40,12 +40,34 @@ Sleeping And Timeouting
     Sleep Without Logging    5
     Fail    This should not be executed
 
-Total Time Too Long
+Total Time Too Long 1
     [Documentation]    FAIL Test timeout 300 milliseconds exceeded.
     [Timeout]    300 milliseconds
     Sleep Without Logging    0.1
     Sleep Without Logging    0.2
     Sleep Without Logging    0.3
+    Fail    This should not be executed
+
+Total Time Too Long 2
+    [Documentation]    FAIL Test timeout 300 milliseconds exceeded.
+    [Timeout]    300 milliseconds
+    Sleep Without Logging    0.1
+    Sleep Without Logging    0.3
+    Fail    This should not be executed
+
+Total Time Too Long 3
+    [Documentation]    FAIL Test timeout 100 milliseconds exceeded.
+    [Timeout]    0.1
+    :FOR    ${i}    IN RANGE    1000
+    \    Log    How many kws can we run in 0.1s?
+    Fail    This should not be executed
+
+Total Time Too Long 4
+    [Documentation]    FAIL Test timeout 100 milliseconds exceeded.
+    [Timeout]    0.1
+    :FOR    ${i}    IN RANGE    1000
+    \    Run Keyword And Expect Error    How many kws can we run in 0.1s?
+    ...    Fail    How many kws can we run in 0.1s?
     Fail    This should not be executed
 
 Looping Forever And Timeouting
@@ -111,6 +133,11 @@ Embedded Arguments Timeout From Argument
     [Documentation]    FAIL Keyword timeout 3 milliseconds exceeded.
     Embedded args timeout '1 second' from arguments
     Embedded args timeout '0.003' from arguments
+
+Local Variables Are Not Visible In Child Keyword Timeout
+    [Documentation]    FAIL Setting keyword timeout failed: Variable '\${local}' not found.
+    ${local}=    Set variable    1 day
+    Keyword that uses parent local variable for timeout
 
 Timeout Format
     [Documentation]    This is thoroughly tested on unit level so here are only some sanity checks
@@ -286,13 +313,17 @@ Run Keyword With Timeout
 
 Keyword timeout from variable
     [Timeout]    ${0.001}
-    Sleep   0.1
+    Sleep    0.1
 
 Keyword timeout from argument
     [Arguments]   ${timeout}
     [Timeout]    ${timeout}
-    Sleep   0.1
+    Sleep    0.1
 
 Embedded args timeout '${timeout}' from arguments
     [Timeout]    ${timeout}
-    Sleep   0.1
+    Sleep    0.1
+
+Keyword that uses parent local variable for timeout
+    [Timeout]    ${local}
+    Sleep    0.1

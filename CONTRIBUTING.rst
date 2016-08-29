@@ -9,7 +9,7 @@ a library or tool missing, there is hardly any better way to contribute
 than creating your own project. Other great ways to contribute include
 answering questions and participating discussion on `robotframework-users
 <https://groups.google.com/forum/#!forum/robotframework-users>`_ mailing list
-and other forums as well as spreading the word about the framework one way or
+and other forums, as well as spreading the word about the framework one way or
 the other.
 
 .. contents::
@@ -22,10 +22,11 @@ Submitting issues
 Bugs and enhancements are tracked in the `issue tracker
 <https://github.com/robotframework/robotframework/issues>`_. If you are
 unsure if something is a bug or is a feature worth implementing, you can
-first ask on `robotframework-users`_ list or `IRC
+first ask on `robotframework-users`_ mailing list, on `IRC
 <http://webchat.freenode.net/?channels=robotframework&prompt=1>`_
-(#robotframework on irc.freenode.net). These and other similar forums,
-not the issue tracker, are also places where to ask general questions.
+(#robotframework on irc.freenode.net), or on `Slack
+<https://robotframework-slack.herokuapp.com>`_. These and other similar
+forums, not the issue tracker, are also places where to ask general questions.
 
 Before submitting a new issue, it is always a good idea to check is the
 same bug or enhancement already reported. If it is, please add your comments
@@ -101,6 +102,9 @@ work on multiple pull requests at the same time.
 Coding conventions
 ~~~~~~~~~~~~~~~~~~
 
+General guidelines
+''''''''''''''''''
+
 Robot Framework uses the general Python code conventions defined in `PEP-8
 <https://www.python.org/dev/peps/pep-0008/>`_. In addition to that, we try
 to write `idiomatic Python
@@ -110,22 +114,33 @@ and follow the `SOLID principles
 new code. An important guideline is that the code should be clear enough that
 comments are generally not needed.
 
-Docstrings should be added to public APIs but are not generally needed in
-internal code. When docstrings are added, they should follow `PEP-257
-<https://www.python.org/dev/peps/pep-0257/>`_. See `API documentation`_
-section below for more details about documentation syntax, generating
-API docs, etc.
+All code, including test code, must be compatible with all supported Python
+interpreters and versions. Most importantly this means that the code must
+support both Python 2 and Python 3.
 
-We are pretty picky about using whitespace. We use blank lines and whitespace
-in expressions as dictated by `PEP-8`_, but we also follow these rules:
+Whitespace
+''''''''''
 
+We are pretty picky about using whitespace. We follow `PEP-8`_ in how to use
+blank lines and whitespace in general, but we also have some stricter rules:
+
+- No blank lines inside functions.
 - Indentation using spaces, not tabs.
 - No trailing spaces.
 - No extra empty lines at the end of the file.
 - Files must end with a newline.
 
-The above rules are good with most other code too. Any good editor or IDE
-can be configured to automatically format files according to them.
+Most of these rules are such that any decent text editor or IDE can be
+configured to automatically format files according to them.
+
+Docstrings
+''''''''''
+
+Docstrings should be added to public APIs, but they are not generally needed in
+internal code. When docstrings are added, they should follow `PEP-257
+<https://www.python.org/dev/peps/pep-0257/>`_. See `API documentation`_
+section below for more details about documentation syntax, generating
+API docs, etc.
 
 Documentation
 ~~~~~~~~~~~~~
@@ -155,9 +170,9 @@ tool. Documentation must use Robot Framework's own `documentation formatting
 and follow these guidelines:
 
 - Other keywords and sections in the library introduction can be referenced
-  with internal links created with backticks like ```Example Keyword```
+  with internal links created with backticks like ```Example Keyword```.
 
-- When referring to arguments, argument names must use in inline code style
+- When referring to arguments, argument names must use inline code style
   created with double backticks like ````argument````.
 
 - Examples are recommended whenever the new keyword or enhanced functionality is
@@ -196,14 +211,14 @@ Tests
 When submitting a pull request with a new feature or a fix, you should
 always include tests for your changes. These tests prove that your changes
 work, help prevent bugs in the future, and help document what your changes
-do. Depending an the change, you may need `acceptance tests`_, `unit tests`_
+do. Depending an the change, you may need acceptance tests, unit tests
 or both.
 
 Make sure to run all of the tests before submitting a pull request to be sure
 that your changes do not break anything. If you can, test in multiple
 environments and interpreters (Windows, Linux, OS X, Python, Jython,
-IronPython, etc). Pull requests are also automatically tested on `continuous
-integration`_.
+IronPython, Python 3, etc). Pull requests are also automatically tested on
+continuous integration.
 
 Acceptance tests
 ''''''''''''''''

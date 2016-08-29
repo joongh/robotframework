@@ -54,16 +54,24 @@ class TestItemLists(unittest.TestCase):
         items.extend((c for c in 'Hello, world!'))
         assert_equal(list(items), list('Hello, world!'))
 
+    def test_insert(self):
+        items = ItemList(str)
+        items.insert(0, 'a')
+        items.insert(0, 'b')
+        items.insert(3, 'c')
+        items.insert(1, 'd')
+        assert_equal(list(items), ['b', 'd', 'a', 'c'])
+
     def test_only_matching_types_can_be_added(self):
         assert_raises_with_msg(TypeError,
                                'Only int objects accepted, got str.',
                                ItemList(int).append, 'not integer')
         assert_raises_with_msg(TypeError,
                                'Only OldStyle objects accepted, got Object.',
-                               ItemList(OldStyle).append, Object())
+                               ItemList(OldStyle).extend, [Object()])
         assert_raises_with_msg(TypeError,
                                'Only Object objects accepted, got OldStyle.',
-                               ItemList(Object).append, OldStyle())
+                               ItemList(Object).insert, 0, OldStyle())
 
     def test_common_attrs(self):
         item1 = Object()
@@ -146,6 +154,16 @@ class TestItemLists(unittest.TestCase):
         assert_raises_with_msg(TypeError,
                                'Only int objects accepted, got float.',
                                ItemList(int).__setitem__, slice(0), [1, 1.1])
+
+    def test_pop(self):
+        items = ItemList(str, items='abcde')
+        assert_equal(items.pop(), 'e')
+        assert_equal(items.pop(0), 'a')
+        assert_equal(items.pop(-2), 'c')
+        assert_equal(list(items), ['b', 'd'])
+        assert_raises(IndexError, items.pop, 7)
+        assert_equal(list(items), ['b', 'd'])
+        assert_raises(IndexError, ItemList(int).pop)
 
     def test_len(self):
         items = ItemList(object)

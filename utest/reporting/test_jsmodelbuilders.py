@@ -1,11 +1,11 @@
+import base64
 import unittest
+import zlib
 from os.path import abspath, basename, dirname, join
 
 from robot.utils.asserts import assert_equal, assert_true
-from robot.result.testsuite import TestSuite
-from robot.result.testcase import TestCase
-from robot.result.keyword import Keyword
-from robot.result.message import Message
+from robot.utils.platform import PY2
+from robot.result import Message, Keyword, TestCase, TestSuite
 from robot.result.executionerrors import ExecutionErrors
 from robot.model import Statistics
 from robot.reporting.jsmodelbuilders import *
@@ -20,9 +20,17 @@ except NameError:
 CURDIR = dirname(abspath(__file__))
 
 
+def decode_string(string):
+    string = string if PY2 else string.encode('ASCII')
+    return zlib.decompress(base64.b64decode(string)).decode('UTF-8')
+
+
 def remap(model, strings):
     if isinstance(model, StringIndex):
-        return strings[model][1:]
+        if strings[model].startswith('*'):
+            # Strip the asterisk from a raw string.
+            return strings[model][1:]
+        return decode_string(strings[model])
     elif isinstance(model, (int, long, type(None))):
         return model
     elif isinstance(model, tuple):

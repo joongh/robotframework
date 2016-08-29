@@ -33,6 +33,8 @@ but can naturally be given also as an absolute path. Regardless of how
 a path to an individual output file is obtained, its parent directory
 is created automatically, if it does not exist already.
 
+.. _output.xml:
+
 Output file
 ~~~~~~~~~~~
 
@@ -115,6 +117,7 @@ name is :file:`report.html`.
    An example report file of failed test execution
 
 .. _xunit:
+.. _xunit file:
 
 XUnit compatible result file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -169,7 +172,7 @@ the extension and the base name of each file. The example below would,
 for example, create such output files as
 :file:`output-20080604-163225.xml` and :file:`mylog-20080604-163225.html`::
 
-   robot --timestampoutputs --log mylog.html --report NONE tests.html
+   robot --timestampoutputs --log mylog.html --report NONE tests.robot
 
 Setting titles
 ~~~~~~~~~~~~~~
@@ -264,11 +267,11 @@ threshold level. A special value `NONE` can also be used to
 disable logging altogether.
 
 It is possible to use the :option:`--loglevel` option also when
-`post-processing outputs`_ with ``rebot``. This allows, for example,
+`post-processing outputs`_ with Rebot. This allows, for example,
 running tests initially with the `TRACE` level, and generating smaller
 log files for normal viewing later with the `INFO` level. By default
 all the messages included during execution will be included also with
-``rebot``. Messages ignored during the execution cannot be recovered.
+Rebot. Messages ignored during the execution cannot be recovered.
 
 Another possibility to change the log level is using the BuiltIn_
 keyword :name:`Set Log Level` in the test data. It takes the same
@@ -498,9 +501,9 @@ or warnings`__ are not removed except when using the `ALL` mode.
 Examples::
 
    rebot --removekeywords all --output removed.xml output.xml
-   robot --removekeywords passed --removekeywords for tests.txt
-   robot --removekeywords name:HugeKeyword --removekeywords name:resource.* tests.txt
-   robot --removekeywords tag:huge tests.txt
+   robot --removekeywords passed --removekeywords for tests.robot
+   robot --removekeywords name:HugeKeyword --removekeywords name:resource.* tests.robot
+   robot --removekeywords tag:huge tests.robot
 
 Removing keywords is done after parsing the `output file`_ and generating
 an internal model based on it. Thus it does not reduce memory usage as much
@@ -540,7 +543,7 @@ supports the following modes:
 
 Examples::
 
-   robot --flattenkeywords name:HugeKeyword --flattenkeywords name:resource.* tests.txt
+   robot --flattenkeywords name:HugeKeyword --flattenkeywords name:resource.* tests.robot
    rebot --flattenkeywords foritem --output flattened.xml original.xml
 
 Flattening keywords is done already when the `output file`_ is parsed
@@ -553,7 +556,7 @@ deeply nested keyword structures.
 Setting start and end time of execution
 ---------------------------------------
 
-When `combining outputs`_ using ``rebot``, it is possible to set the start
+When `combining outputs`_ using Rebot, it is possible to set the start
 and end time of the combined test suite using the options :option:`--starttime`
 and :option:`--endtime`, respectively. This is convenient, because by default,
 combined suites do not have these values. When both the start and end time are
@@ -561,7 +564,7 @@ given, the elapsed time is also calculated based on them. Otherwise the elapsed
 time is got by adding the elapsed times of the child test suites together.
 
 It is also possible to use the above mentioned options to set start and end
-times for a single suite when using ``rebot``.  Using these options with a
+times for a single suite when using Rebot.  Using these options with a
 single output always affects the elapsed time of the suite.
 
 Times must be given as timestamps in the format `YYYY-MM-DD
@@ -576,6 +579,8 @@ Examples::
    rebot --starttime 20080611-175920 --endtime 20080611-180242 *.xml
    rebot --starttime 20110302-1317 --endtime 20110302-11418 myoutput.xml
 
+.. _pre-Rebot modifier:
+
 Programmatic modification of results
 ------------------------------------
 
@@ -586,10 +591,9 @@ activating it using the :option:`--prerebotmodifier` option.
 
 This functionality works nearly exactly like `programmatic modification of
 test data`_ that can be enabled with the :option:`--prerunmodifier` option.
-The only difference is that the modified model is Robot Framework's
-result model and not the executable test suite model. For example, the
-following modifier marks all passed tests that have taken more time than
-allowed as failed:
+The obvious difference is that this time modifiers operate with the
+`result model`_, not the `running model`_. For example, the following modifier
+marks all passed tests that have taken more time than allowed as failed:
 
 .. sourcecode:: python
 

@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,6 +15,7 @@
 
 from robot.utils import JYTHON
 
+from .argumentmapper import DefaultValue
 from .argumentparser import (PythonArgumentParser, UserKeywordArgumentParser,
                              DynamicArgumentParser, JavaArgumentParser)
 from .argumentspec import ArgumentSpec

@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -17,7 +18,6 @@ import re
 import time
 import token
 from tokenize import generate_tokens, untokenize
-from robot.utils import StringIO
 
 from robot.api import logger
 from robot.errors import (ContinueForLoop, DataError, ExecutionFailed,
@@ -30,8 +30,8 @@ from robot.utils import (DotDict, escape, format_assign_message,
                          get_error_message, get_time, is_falsy, is_integer,
                          is_string, is_truthy, is_unicode, IRONPYTHON, JYTHON,
                          Matcher, normalize, NormalizedDict, parse_time, prepr,
-                         RERAISED_EXCEPTIONS, plural_or_not as s, PY3, roundup,
-                         secs_to_timestr, seq2str, split_from_equals,
+                         RERAISED_EXCEPTIONS, plural_or_not as s, roundup,
+                         secs_to_timestr, seq2str, split_from_equals, StringIO,
                          timestr_to_secs, type_name, unic)
 from robot.utils.asserts import assert_equal, assert_not_equal
 from robot.variables import (is_list_var, is_var, DictVariableTableValue,
@@ -43,18 +43,13 @@ if JYTHON:
     from java.lang import String, Number
 
 
-# TODO: The name of this decorator should be changed. It is used for avoiding
-# arguments to be resolved by many other keywords than run keyword variants.
-# Should also consider:
-# - Exposing this functionality to external libraries. Would require doc
-#   enhancements and clean way to expose variables to make resolving them
-#   based on needs easier.
-# - Removing the functionality that run keyword variants can be overridded
-#   by custom keywords without a warning.
+# TODO: Clean-up registering run keyword variants in RF 3.1.
+# https://github.com/robotframework/robotframework/issues/2190
 
 def run_keyword_variant(resolve):
     def decorator(method):
-        RUN_KW_REGISTER.register_run_keyword('BuiltIn', method.__name__, resolve)
+        RUN_KW_REGISTER.register_run_keyword('BuiltIn', method.__name__,
+                                             resolve, deprecation_warning=False)
         return method
     return decorator
 
@@ -281,7 +276,7 @@ class _Converter(_BuiltInBase):
 
     def _convert_to_number(self, item, precision=None):
         number = self._convert_to_number_without_precision(item)
-        if precision:
+        if precision is not None:
             number = roundup(number, self._convert_to_integer(precision),
                              return_type=float)
         return number
@@ -443,42 +438,43 @@ class _Converter(_BuiltInBase):
 
     @run_keyword_variant(resolve=0)
     def create_dictionary(self, *items):
-        """Creates and returns a dictionary based on given items.
+        """Creates and returns a dictionary based on the given ``items``.
 
-        Items are given using ``key=value`` syntax same way as ``&{dictionary}``
-        variables are created in the Variable table. Both keys and values
-        can contain variables, and possible equal sign in key can be escaped
-        with a backslash like ``escaped\\=key=value``. It is also possible to
-        get items from existing dictionaries by simply using them like
-        ``&{dict}``.
+        Items are typically given using the ``key=value`` syntax same way as
+        ``&{dictionary}`` variables are created in the Variable table. Both
+        keys and values can contain variables, and possible equal sign in key
+        can be escaped with a backslash like ``escaped\\=key=value``. It is
+        also possible to get items from existing dictionaries by simply using
+        them like ``&{dict}``.
+
+        Alternatively items can be specified so that keys and values are given
+        separately. This and the ``key=value`` syntax can even be combined,
+        but separately given items must be first.
 
         If same key is used multiple times, the last value has precedence.
         The returned dictionary is ordered, and values with strings as keys
-        can also be accessed using convenient dot-access syntax like
+        can also be accessed using a convenient dot-access syntax like
         ``${dict.key}``.
 
         Examples:
-        | &{dict} = | Create Dictionary | key=value | foo=bar |
+        | &{dict} = | Create Dictionary | key=value | foo=bar | | | # key=value syntax |
         | Should Be True | ${dict} == {'key': 'value', 'foo': 'bar'} |
-        | &{dict} = | Create Dictionary | ${1}=${2} | &{dict} | foo=new |
+        | &{dict2} = | Create Dictionary | key | value | foo | bar | # separate key and value |
+        | Should Be Equal | ${dict} | ${dict2} |
+        | &{dict} = | Create Dictionary | ${1}=${2} | &{dict} | foo=new | | # using variables |
         | Should Be True | ${dict} == {1: 2, 'key': 'value', 'foo': 'new'} |
-        | Should Be Equal | ${dict.key} | value |
+        | Should Be Equal | ${dict.key} | value | | | | # dot-access |
 
         This keyword was changed in Robot Framework 2.9 in many ways:
         - Moved from ``Collections`` library to ``BuiltIn``.
         - Support also non-string keys in ``key=value`` syntax.
-        - Deprecated old syntax to give keys and values separately.
         - Returned dictionary is ordered and dot-accessible.
+        - Old syntax to give keys and values separately was deprecated, but
+          deprecation was later removed in RF 3.0.1.
         """
         separate, combined = self._split_dict_items(items)
-        if separate:
-            # TODO: Deprecated in 2.9. Remove support for this in 3.1.
-            self.log("Giving keys and values separately to 'Create Dictionary' "
-                     "keyword is deprecated. Use 'key=value' syntax instead.",
-                     level='WARN')
-        separate = self._format_separate_dict_items(separate)
+        result = DotDict(self._format_separate_dict_items(separate))
         combined = DictVariableTableValue(combined).resolve(self._variables)
-        result = DotDict(separate)
         result.update(combined)
         return result
 
@@ -1665,11 +1661,9 @@ class _RunKeyword(_BuiltInBase):
     def repeat_keyword(self, repeat, name, *args):
         """Executes the specified keyword multiple times.
 
-        ``name`` and ``args`` define the keyword that is executed
-        similarly as with `Run Keyword`.
-
-        ``repeat`` specifies how many times (count) or how long time
-        (timeout) the keyword should be executed.
+        ``name`` and ``args`` define the keyword that is executed similarly as
+        with `Run Keyword`. ``repeat`` specifies how many times (as a count) or
+        how long time (as a timeout) the keyword should be executed.
 
         If ``repeat`` is given as count, it specifies how many times the
         keyword should be executed. ``repeat`` can be given as an integer or
@@ -1679,29 +1673,41 @@ class _RunKeyword(_BuiltInBase):
 
         If ``repeat`` is given as timeout, it must be in Robot Framework's
         time format (e.g. ``1 minute``, ``2 min 3 s``). Using a number alone
-        (e.g. 1 or 1.5) does not work in this context.
+        (e.g. ``1`` or ``1.5``) does not work in this context.
 
         If ``repeat`` is zero or negative, the keyword is not executed at
         all. This keyword fails immediately if any of the execution
         rounds fails.
 
         Examples:
-        | Repeat Keyword | 5 times | Go to Previous Page |
-        | Repeat Keyword | ${var}  | Some Keyword | arg1 | arg2 |
-        | Repeat Keyword | 2 mins  | Some Keyword | arg1 | arg2 |
+        | Repeat Keyword | 5 times   | Go to Previous Page |
+        | Repeat Keyword | ${var}    | Some Keyword | arg1 | arg2 |
+        | Repeat Keyword | 2 minutes | Some Keyword | arg1 | arg2 |
+
+        Specifying ``repeat`` as a timeout is new in Robot Framework 3.0.
         """
         try:
-            count = self._get_times_to_repeat(repeat)
+            count = self._get_repeat_count(repeat)
         except RuntimeError as err:
-            timeout = self._get_timeout_to_repeat(repeat)
+            timeout = self._get_repeat_timeout(repeat)
             if timeout is None:
                 raise err
-            keywords = self._yield_repeated_keywords_until(timeout, name, args)
+            keywords = self._keywords_repeated_by_timeout(timeout, name, args)
         else:
-            keywords = self._yield_repeated_keywords(count, name, args)
+            keywords = self._keywords_repeated_by_count(count, name, args)
         self._run_keywords(keywords)
 
-    def _get_timeout_to_repeat(self, timestr):
+    def _get_repeat_count(self, times, require_postfix=False):
+        times = normalize(str(times))
+        if times.endswith('times'):
+            times = times[:-5]
+        elif times.endswith('x'):
+            times = times[:-1]
+        elif require_postfix:
+            raise ValueError
+        return self._convert_to_integer(times)
+
+    def _get_repeat_timeout(self, timestr):
         try:
             float(timestr)
         except ValueError:
@@ -1713,21 +1719,23 @@ class _RunKeyword(_BuiltInBase):
         except ValueError:
             return None
 
-    def _get_times_to_repeat(self, times, require_postfix=False):
-        times = normalize(str(times))
-        if times.endswith('times'):
-            times = times[:-5]
-        elif times.endswith('x'):
-            times = times[:-1]
-        elif require_postfix:
-            raise ValueError
-        return self._convert_to_integer(times)
-
-    def _yield_repeated_keywords(self, times, name, args):
-        if times <= 0:
+    def _keywords_repeated_by_count(self, count, name, args):
+        if count <= 0:
             self.log("Keyword '%s' repeated zero times." % name)
-        for i in range(times):
-            self.log("Repeating keyword, round %d/%d." % (i+1, times))
+        for i in range(count):
+            self.log("Repeating keyword, round %d/%d." % (i + 1, count))
+            yield name, args
+
+    def _keywords_repeated_by_timeout(self, timeout, name, args):
+        if timeout <= 0:
+            self.log("Keyword '%s' repeated zero times." % name)
+        repeat_round = 0
+        maxtime = time.time() + timeout
+        while time.time() < maxtime:
+            repeat_round += 1
+            self.log("Repeating keyword, round %d, %s remaining."
+                     % (repeat_round,
+                        secs_to_timestr(maxtime - time.time(), compact=True)))
             yield name, args
 
     def _yield_repeated_keywords_until(self, timeout, name, args):
@@ -1782,7 +1790,7 @@ class _RunKeyword(_BuiltInBase):
         """
         maxtime = count = -1
         try:
-            count = self._get_times_to_repeat(retry, require_postfix=True)
+            count = self._get_repeat_count(retry, require_postfix=True)
         except ValueError:
             timeout = timestr_to_secs(retry)
             maxtime = time.time() + timeout
@@ -2249,7 +2257,7 @@ class _Control(_BuiltInBase):
         """
         if self._is_true(condition):
             message = self._variables.replace_string(message)
-            tags = [self._variables.replace_string(tag) for tag in tags]
+            tags = self._variables.replace_list(tags)
             self.pass_execution(message, *tags)
 
 
@@ -2291,7 +2299,7 @@ class _Misc(_BuiltInBase):
             remaining = endtime - time.time()
             if remaining <= 0:
                 break
-            time.sleep(min(remaining, 0.5))
+            time.sleep(min(remaining, 0.01))
 
     def catenate(self, *items):
         """Catenates the given items together and returns the resulted string.
@@ -3190,8 +3198,13 @@ class RobotNotRunningError(AttributeError):
     pass
 
 
-def register_run_keyword(library, keyword, args_to_process=None):
+def register_run_keyword(library, keyword, args_to_process=None,
+                         deprecation_warning=True):
     """Registers 'run keyword' so that its arguments can be handled correctly.
+
+    *NOTE:* This API will change in RF 3.1. For more information see
+    https://github.com/robotframework/robotframework/issues/2190. Use with
+    `deprecation_warning=False` to avoid related deprecation warnings.
 
     1) Why is this method needed
 
@@ -3247,4 +3260,5 @@ def register_run_keyword(library, keyword, args_to_process=None):
     register_run_keyword('MyLibrary', MyLibrary.my_run_keyword_if)
     register_run_keyword('MyLibrary', 'my_run_keyword_if', 2)
     """
-    RUN_KW_REGISTER.register_run_keyword(library, keyword, args_to_process)
+    RUN_KW_REGISTER.register_run_keyword(library, keyword, args_to_process,
+                                         deprecation_warning)

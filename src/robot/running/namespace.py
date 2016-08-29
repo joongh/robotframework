@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -146,16 +147,25 @@ class Namespace(object):
             name = self.variables.replace_string(name)
         except DataError as err:
             self._raise_replacing_vars_failed(import_setting, err)
-        return self._get_name(name, import_setting.directory, import_setting.type)
+        return self._get_name(name, import_setting)
 
     def _raise_replacing_vars_failed(self, import_setting, err):
         raise DataError("Replacing variables from setting '%s' failed: %s"
                         % (import_setting.type, err.message))
 
-    def _get_name(self, name, basedir, import_type):
-        if import_type == 'Library' and not self._is_library_by_path(name):
-            return name.replace(' ', '')
-        return find_file(name, basedir, file_type=import_type)
+    def _get_name(self, name, import_setting):
+        if import_setting.type == 'Library' and not self._is_library_by_path(name):
+            if ' ' in name:
+                # TODO: Remove support for extra spaces in name in RF 3.1.
+                # https://github.com/robotframework/robotframework/issues/2264
+                warning = ("Importing library with extra spaces in name like "
+                           "'%s' is deprecated. Remove spaces and use '%s' "
+                           "instead." % (name, name.replace(' ', '')))
+                import_setting.report_invalid_syntax(warning, 'WARN')
+                name = name.replace(' ', '')
+            return name
+        return find_file(name, import_setting.directory,
+                         file_type=import_setting.type)
 
     def _is_library_by_path(self, path):
         return path.lower().endswith(self._library_import_by_path_endings)
@@ -420,22 +430,14 @@ class KeywordRecommendationFinder(object):
         return names
 
     def _get_all_handler_names(self):
-        """Return a list of (library name, handler name) tuples.
-
-        For user keywords, library name == None.
-
-        Excludes DeprecatedBuiltIn, DeprecatedOperatingSystem,
-        and Reserved libraries.
-        """
-        excluded = ['DeprecatedBuiltIn', 'DeprecatedOperatingSystem',
-                    'Reserved']
-        handlers = [(None, printable_name(handler.name, True))
+        """Return a list of `(library_name, handler_name)` tuples."""
+        handlers = [('', printable_name(handler.name, True))
                     for handler in self.user_keywords.handlers]
         for library in chain(self.libraries.values(), self.resources.values()):
-            if library.name not in excluded:
+            if library.name != 'Reserved':
                 handlers.extend(
-                    ((library.name,
+                    ((library.name or '',
                       printable_name(handler.name, code_style=True))
                      for handler in library.handlers))
         # sort handlers to ensure consistent ordering between Jython and Python
-        return sorted(handlers, key=lambda x: (x[0] or '', x[1]))
+        return sorted(handlers)

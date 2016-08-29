@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -162,8 +163,7 @@ class _DynamicHandler(_RunnableHandler):
 
     def resolve_arguments(self, arguments, variables=None):
         positional, named = self.arguments.resolve(arguments, variables)
-        arguments, kwargs = self.arguments.map(positional, named,
-                                               prune_trailing_defaults=True)
+        arguments, kwargs = self.arguments.map(positional, named)
         return arguments, kwargs
 
     def _get_handler(self, lib_instance, handler_name):

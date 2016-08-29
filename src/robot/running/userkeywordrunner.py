@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,16 +13,18 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from robot.errors import (ExecutionFailed, ReturnFromKeyword, ExecutionPassed,
-                          UserKeywordExecutionFailed, DataError, VariableError,
-                          PassExecution)
-from robot.result.keyword import Keyword as KeywordResult
+from robot.errors import (ExecutionFailed, ExecutionPassed, ExitForLoop,
+                          ContinueForLoop, DataError, PassExecution,
+                          ReturnFromKeyword, UserKeywordExecutionFailed,
+                          VariableError)
+from robot.result import Keyword as KeywordResult
 from robot.utils import DotDict, prepr, split_tags_from_doc
 from robot.variables import is_list_var, VariableAssignment
 
+from .arguments import DefaultValue
+from .statusreporter import StatusReporter
 from .steprunner import StepRunner
 from .timeouts import KeywordTimeout
-from .statusreporter import StatusReporter
 
 
 class UserKeywordRunner(object):
@@ -56,8 +59,7 @@ class UserKeywordRunner(object):
         handler = self._handler
         doc = variables.replace_string(handler.doc, ignore_errors=True)
         doc, tags = split_tags_from_doc(doc)
-        tags = [variables.replace_string(tag, ignore_errors=True)
-                for tag in handler.tags] + tags
+        tags = variables.replace_list(handler.tags, ignore_errors=True) + tags
         return KeywordResult(kwname=self.name,
                              libname=handler.libname,
                              doc=doc.splitlines()[0] if doc else '',
@@ -71,23 +73,24 @@ class UserKeywordRunner(object):
         args = self._resolve_arguments(args, variables)
         with context.user_keyword:
             self._set_arguments(args, context)
-            timeout = self._get_timeout(result, variables)
+            timeout = self._get_timeout(variables)
+            if timeout is not None:
+                result.timeout = str(timeout)
             with context.timeout(timeout):
-                error, return_ = self._execute(context)
-                if error and not error.can_continue(context.in_teardown):
-                    raise error
+                exception, return_ = self._execute(context)
+                if exception and not exception.can_continue(context.in_teardown):
+                    raise exception
                 return_value = self._get_return_value(variables, return_)
-                if error:
-                    error.return_value = return_value
-                    raise error
+                if exception:
+                    exception.return_value = return_value
+                    raise exception
                 return return_value
 
-    def _get_timeout(self, result, variables=None):
+    def _get_timeout(self, variables=None):
         timeout = self._handler.timeout
         if not timeout:
             return None
         timeout = KeywordTimeout(timeout.value, timeout.message, variables)
-        result.timeout = str(timeout)
         return timeout
 
     def _resolve_arguments(self, arguments, variables=None):
@@ -96,13 +99,16 @@ class UserKeywordRunner(object):
     def _set_arguments(self, arguments, context):
         positional, named = arguments
         variables = context.variables
-        args, kwargs = self.arguments.map(positional, named, variables)
+        args, kwargs = self.arguments.map(positional, named,
+                                          replace_defaults=False)
         self._set_variables(args, kwargs, variables)
-        context.output.trace(lambda: self._log_args(variables))
+        context.output.trace(lambda: self._trace_log_args_message(variables))
 
     def _set_variables(self, positional, kwargs, variables):
         before_varargs, varargs = self._split_args_and_varargs(positional)
         for name, value in zip(self.arguments.positional, before_varargs):
+            if isinstance(value, DefaultValue):
+                value = value.resolve(variables)
             variables['${%s}' % name] = value
         if self.arguments.varargs:
             variables['@{%s}' % self.arguments.varargs] = varargs
@@ -115,6 +121,18 @@ class UserKeywordRunner(object):
         positional = len(self.arguments.positional)
         return args[:positional], args[positional:]
 
+    def _trace_log_args_message(self, variables):
+        args = ['${%s}' % arg for arg in self.arguments.positional]
+        if self.arguments.varargs:
+            args.append('@{%s}' % self.arguments.varargs)
+        if self.arguments.kwargs:
+            args.append('&{%s}' % self.arguments.kwargs)
+        return self._format_trace_log_args_message(args, variables)
+
+    def _format_trace_log_args_message(self, args, variables):
+        args = ['%s=%s' % (name, prepr(variables[name])) for name in args]
+        return 'Arguments: [ %s ]' % ' | '.join(args)
+
     def _execute(self, context):
         if not (self._handler.keywords or self._handler.return_value):
             raise DataError("User keyword '%s' contains no keywords." % self.name)
@@ -124,9 +142,13 @@ class UserKeywordRunner(object):
         except ReturnFromKeyword as exception:
             return_ = exception
             error = exception.earlier_failures
+        except (ExitForLoop, ContinueForLoop) as exception:
+            pass_ = exception
         except ExecutionPassed as exception:
             pass_ = exception
             error = exception.earlier_failures
+            if error:
+                error.continue_on_failure = False
         except ExecutionFailed as exception:
             error = exception
         with context.keyword_teardown(error):
@@ -134,15 +156,6 @@ class UserKeywordRunner(object):
         if error or td_error:
             error = UserKeywordExecutionFailed(error, td_error)
         return error or pass_, return_
-
-    def _log_args(self, variables):
-        args = ['${%s}' % arg for arg in self.arguments.positional]
-        if self.arguments.varargs:
-            args.append('@{%s}' % self.arguments.varargs)
-        if self.arguments.kwargs:
-            args.append('&{%s}' % self.arguments.kwargs)
-        args = ['%s=%s' % (name, prepr(variables[name])) for name in args]
-        return 'Arguments: [ %s ]' % ' | '.join(args)
 
     def _get_return_value(self, variables, return_):
         ret = self._handler.return_value if not return_ else return_.return_value
@@ -183,9 +196,11 @@ class UserKeywordRunner(object):
             self._dry_run(context, kw.args, result)
 
     def _dry_run(self, context, args, result):
-        timeout = self._get_timeout(self._handler.timeout, result)
         self._resolve_arguments(args)
-        with context.user_keyword(timeout):
+        with context.user_keyword:
+            timeout = self._get_timeout()
+            if timeout:
+                result.timeout = str(timeout)
             error, _ = self._execute(context)
             if error:
                 raise error
@@ -208,6 +223,11 @@ class EmbeddedArgumentsRunner(UserKeywordRunner):
         return [(n, variables.replace_scalar(v)) for n, v in self.embedded_args]
 
     def _set_arguments(self, embedded_args, context):
+        variables = context.variables
         for name, value in embedded_args:
-            context.variables['${%s}' % name] = value
-        # TODO: Trace log embedded args
+            variables['${%s}' % name] = value
+        context.output.trace(lambda: self._trace_log_args_message(variables))
+
+    def _trace_log_args_message(self, variables):
+        args = ['${%s}' % arg for arg, _ in self.embedded_args]
+        return self._format_trace_log_args_message(args, variables)

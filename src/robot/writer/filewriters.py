@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -26,11 +27,11 @@ from .htmltemplate import TEMPLATE_START, TEMPLATE_END
 
 
 def FileWriter(context):
-    """Creates and returns a FileWriter object.
+    """Creates and returns a ``FileWriter`` object.
 
-    :param context: Type of returned FileWriter is determined based on
-        `context.format`. `context` is also passed to created writer.
-    :type context: :py:class:`WritingContext`
+    :param context: The type of the returned ``FileWriter`` is determined based
+        on ``context.format``. ``context`` is also passed to created writer.
+    :type context: :class:`~robot.writer.datafilewriter.WritingContext`
     """
     if context.format == context.html_format:
         return HtmlFileWriter(context)

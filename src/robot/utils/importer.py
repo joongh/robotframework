@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -69,7 +70,8 @@ class Importer(object):
             imported = self._instantiate_if_needed(imported, instantiate_with_args)
         except DataError as err:
             self._raise_import_failed(name, err)
-        return (imported, source) if return_source else imported
+        else:
+            return (imported, source) if return_source else imported
 
     def _import_class_or_module(self, name):
         for importer in self._importers:

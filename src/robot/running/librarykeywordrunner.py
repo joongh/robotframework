@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,7 +15,7 @@
 
 from robot.errors import DataError
 from robot.model import Keywords
-from robot.result.keyword import Keyword as KeywordResult
+from robot.result import Keyword as KeywordResult
 from robot.utils import prepr, unic
 from robot.variables import VariableAssignment, contains_var, is_list_var
 
@@ -70,17 +71,15 @@ class LibraryKeywordRunner(object):
                 context.output.message(message)
         positional, named = \
             self._handler.resolve_arguments(args, context.variables)
-        context.output.trace(self._log_args(positional, named))
+        context.output.trace(lambda: self._trace_log_args(positional, named))
         runner = self._runner_for(context, self._handler.current_handler(),
                                   positional, dict(named))
         return self._run_with_output_captured_and_signal_monitor(runner, context)
 
-    def _log_args(self, positional, named):
-        def logger():
-            args = [prepr(arg) for arg in positional]
-            args += ['%s=%s' % (unic(n), prepr(v)) for n, v in named]
-            return 'Arguments: [ %s ]' % ' | '.join(args)
-        return logger
+    def _trace_log_args(self, positional, named):
+        args = [prepr(arg) for arg in positional]
+        args += ['%s=%s' % (unic(n), prepr(v)) for n, v in named]
+        return 'Arguments: [ %s ]' % ' | '.join(args)
 
     def _runner_for(self, context, handler, positional, named):
         timeout = self._get_timeout(context)

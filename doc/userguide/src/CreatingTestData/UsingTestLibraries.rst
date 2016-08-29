@@ -24,11 +24,9 @@ Using `Library` setting
 
 Test libraries are normally imported using the :setting:`Library`
 setting in the Setting table and having the library name in the
-subsequent column. The library name is case-sensitive (it is the name
-of the module or class implementing the library and must be exactly
-correct), but any spaces in it are ignored. With Python libraries in
-modules or Java libraries in packages, the full name including the
-module or package name must be used.
+subsequent column. Unlike most of the other data, the library name
+is both case- and space-sensitive. If a library is in a package,
+the full name including the package name must be used.
 
 In those cases where the library needs arguments, they are listed in
 the columns after the library name. It is possible to use default
@@ -42,7 +40,7 @@ __ `Using arguments`_
 
    *** Settings ***
    Library    OperatingSystem 
-   Library    com.company.TestLib
+   Library    my.package.TestLibrary
    Library    MyLibrary    arg1    arg2
    Library    ${LIBRARY}
    
@@ -116,8 +114,8 @@ Following examples demonstrate these different usages.
 .. sourcecode:: robotframework
 
    *** Settings ***
-   Library    PythonLib.py
-   Library    /absolute/path/JavaLib.java
+   Library    PythonLibrary.py
+   Library    /absolute/path/JavaLibrary.java
    Library    relative/path/PythonDirLib/    possible    arguments
    Library    ${RESOURCES}/Example.class
 
@@ -153,7 +151,7 @@ __ `Handling keywords with same names`_
 
 
 The basic syntax for specifying the new name is having the text
-`WITH NAME` (case-insensitive) after the library name and then
+`WITH NAME` (case-sensitive) after the library name and then
 having the new name in the next cell. The specified name is shown in
 logs and must be used in the test data when using keywords' full name
 (:name:`LibraryName.Keyword Name`).

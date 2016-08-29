@@ -63,7 +63,7 @@ Command line options for test execution
   --dryrun                In the `dry run`_ mode tests are run without executing
                           keywords originating from test libraries. Useful for
                           validating test data syntax.
-  --exitonfailure         `Stops test execution <Stopping when first test case fails_>`__
+  -X, --exitonfailure     `Stops test execution <Stopping when first test case fails_>`__
                           if any critical test fails.
   --exitonerror           `Stops test execution <Stopping on parsing or execution error_>`__
                           if any error occurs when parsing test data, importing libraries, and so on.
@@ -78,12 +78,6 @@ Command line options for test execution
   -C, --consolecolors <auto|on|ansi|off>  `Specifies are colors`_ used on the console.
   -K, --consolemarkers <auto|on|off>  Show `markers on the console`_ when top level
                                       keywords in a test case end.
-  --monitorwidth <width>              Deprecated since Robot Framework 2.9.
-                                      Use :option:`--consolewidth` instead.
-  --monitorcolors <auto|on|ansi|off>  Deprecated since Robot Framework 2.9.
-                                      Use :option:`--consolecolors` instead.
-  --monitormarkers <auto|on|off>      Deprecated since Robot Framework 2.9.
-                                      Use :option:`--consolemarkers` instead.
   -P, --pythonpath <path>  Additional locations to add to the `module search path`_.
   -E, --escape <what:with>   `Escapes characters`_ that are problematic in the console.
   -A, --argumentfile <path>   A text file to `read more arguments`_ from.
@@ -141,8 +135,6 @@ Command line options for post-processing outputs
                           `empty test suites`_.
   --prerebotmodifier <name:args>  Activate `programmatic modification of results`_.
   -C, --consolecolors <auto|on|ansi|off>  `Specifies are colors`_ used on the console.
-  --monitorcolors <auto|on|ansi|off>  Deprecated since Robot Framework 2.9.
-                                      Use :option:`--consolecolors` instead.
   -P, --pythonpath <path>   Additional locations to add to the `module search path`_.
   -E, --escape <what:with>  `Escapes characters`_ that are problematic in the console.
   -A, --argumentfile <path>   A text file to `read more arguments`_ from.

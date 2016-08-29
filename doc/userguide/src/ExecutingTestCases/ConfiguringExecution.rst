@@ -17,7 +17,7 @@ Selecting test cases
 
 Robot Framework offers several command line options for selecting
 which test cases to execute. The same options also work when
-post-processing outputs with the ``rebot`` tool.
+post-processing outputs with Rebot_.
 
 By test suite and test case names
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -155,10 +155,10 @@ also in this case. As a result normal outputs are created but show zero
 executed tests. The same option can be used also to alter the behavior when
 an empty directory or a test case file containing no tests is executed.
 
-Similar situation can occur also when processing output files with rebot_.
+Similar situation can occur also when processing output files with Rebot_.
 It is possible that no test match the used filtering criteria or that
 the output file contained no tests to begin with. By default executing
-``rebot`` fails in these cases, but it has a separate
+Rebot fails in these cases, but it has a separate
 :option:`--ProcessEmptySuite` option that can be used to alter the behavior.
 In practice this option works the same way as :option:`--RunEmptySuite` when
 running tests.
@@ -205,15 +205,15 @@ they start to pass.
 
 Criticality set when tests are
 executed is not stored anywhere. If you want to keep same criticality
-when `post-processing outputs`_ with ``rebot``, you need to
+when `post-processing outputs`_ with Rebot, you need to
 use :option:`--critical` and/or :option:`--noncritical` also with it::
 
   # Use rebot to create new log and report from the output created during execution
-  robot --critical regression --outputdir all my_tests.html
+  robot --critical regression --outputdir all tests.robot
   rebot --name Smoke --include smoke --critical regression --outputdir smoke all/output.xml
 
   # No need to use --critical/--noncritical when no log or report is created
-  robot --log NONE --report NONE my_tests.html
+  robot --log NONE --report NONE tests.robot
   rebot --critical feature1 output.xml
 
 __ `By tag names`_
@@ -228,7 +228,7 @@ When Robot Framework parses test data, `test suite names are created
 from file and directory names`__. The name of the top-level test suite
 can, however, be overridden with the command line option
 :option:`--name (-N)`. Underscores in the given name are converted to
-spaces automatically, and words in the name capitalized.
+spaces automatically.
 
 __ `Test suite name and documentation`_
 
@@ -439,10 +439,12 @@ what was randomized and what seed was used.
 
 Examples::
 
-    robot --randomize tests my_test.txt
+    robot --randomize tests my_test.robot
     robot --randomize all:12345 path/to/tests
 
 __ `Free test suite metadata`_
+
+.. _pre-run modifier:
 
 Programmatic modification of test data
 --------------------------------------
@@ -455,9 +457,11 @@ option.
 
 Model modifiers should be implemented as visitors that can traverse through
 the executable test suite structure and modify it as needed. The visitor
-interface is explained as part of the `Robot Framework API documentation`__,
-and the example below ought to give an idea of how it can be used and how
-powerful this functionality is.
+interface is explained as part of the `Robot Framework API documentation
+<visitor interface_>`_, and it possible to modify executed `test suites
+<running.TestSuite_>`_, `test cases <running.TestCase_>`_ and `keywords
+<running.Keyword_>`_ using it. The example below ought to give an idea of
+how model modifiers can be used and how powerful this functionality is.
 
 .. sourcecode:: python
 
@@ -492,7 +496,6 @@ the :option:`--prerunmodifier` option multiple times. If similar modifying
 is needed before creating results, `programmatic modification of results`_
 can be enabled using the :option:`--prerebotmodifier` option.
 
-__ https://robot-framework.readthedocs.org/en/latest/autodoc/robot.model.html#module-robot.model.visitor
 __ `Specifying library to import`_
 
 Controlling console output
@@ -549,8 +552,9 @@ the option :option:`--consolewidth (-W)`. The default width is 78 characters.
          environment variable like `--consolewidth $COLUMNS`.
 
 .. note:: Prior to Robot Framework 2.9 this functionality was enabled with
-          :option:`--monitorwidth` option that is nowadays deprecated.
-          The short option :option:`-W` works the same way in all versions.
+          :option:`--monitorwidth` option that was first deprecated and is
+          nowadays removed. The short option :option:`-W` works the same way
+          in all versions.
 
 Console colors
 ~~~~~~~~~~~~~~
@@ -579,8 +583,9 @@ This option supports the following case-insensitive values:
     Colors are disabled.
 
 .. note:: Prior to Robot Framework 2.9 this functionality was enabled with
-          :option:`--monitorcolors` option that is nowadays deprecated.
-          The short option :option:`-C` works the same way in all versions.
+          :option:`--monitorcolors` option that was first deprecated and is
+          nowadays removed. The short option :option:`-C` works the same way
+          in all versions.
 
 __ http://en.wikipedia.org/wiki/ANSI_escape_code
 
@@ -607,8 +612,9 @@ case-insensitive values:
     Markers are disabled.
 
 .. note:: Prior to Robot Framework 2.9 this functionality was enabled with
-          :option:`--monitormarkers` option that is nowadays deprecated.
-          The short option :option:`-K` works the same way in all versions.
+          :option:`--monitormarkers` option that was first deprecated and is
+          nowadays removed. The short option :option:`-K` works the same way
+          in all versions.
 
 __ `Console output type`_
 
@@ -618,5 +624,5 @@ Setting listeners
 Listeners_ can be used to monitor the test execution. When they are taken into
 use from the command line, they are specified using the :option:`--listener`
 command line option. The value can either be a path to a listener or
-a listener name. See the `Using listener interface`_ section for more details
+a listener name. See the `Listener interface`_ section for more details
 about importing listeners and using them in general.

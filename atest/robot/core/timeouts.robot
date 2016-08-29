@@ -32,8 +32,13 @@ Show Correct Trace Back When Failing In Java Before Timeout
 
 Timeouted Test Timeouts
     Check Test Case    Sleeping And Timeouting
-    Check Test Case    Total Time Too Long
     Check Test Case    Looping Forever And Timeouting
+
+Total Time Too Long
+    Check Test Case    ${TEST NAME} 1
+    Check Test Case    ${TEST NAME} 2
+    Check Test Case    ${TEST NAME} 3
+    Check Test Case    ${TEST NAME} 4
 
 Timout Defined For One Test
     Check Test Case    ${TEST NAME}
@@ -74,6 +79,9 @@ Embedded Arguments Timeout From Argument
     ${tc} =   Check Test Case    ${TEST NAME}
     Should Be Equal    ${tc.kws[0].timeout}    1 second
     Should Be Equal    ${tc.kws[1].timeout}    3 milliseconds
+
+Local Variables Are Not Visible In Child Keyword Timeout
+    Check Test Case    ${TEST NAME}
 
 Timeout Format
     ${tc} =   Check Test Case    ${TEST NAME}

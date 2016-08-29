@@ -4,7 +4,7 @@ Basic usage
 Robot Framework test cases are executed from the command line, and the
 end result is, by default, an `output file`_ in XML format and an HTML
 report_ and log_. After the execution, output files can be combined and
-otherwise `post-processed`__ with the ``rebot`` tool.
+otherwise `post-processed`__ with the Rebot tool.
 
 __ `Post-processing outputs`_
 
@@ -27,24 +27,24 @@ Synopsis
     python|jython|ipy path/to/robot/ [options] data_sources
     java -jar robotframework.jar [options] data_sources
 
-Test execution is normally started using ``robot`` `runner script`_. This
-script is new in Robot Framework 3.0 and executes the tests using the
-interpreter that was used for installing Robot Framework. Alternatively it is
-possible to use ``robot`` `entry point`_ either as a module or a script
-using any interpreter, or use the `standalone JAR distribution`_.
+Test execution is normally started using the ``robot`` `runner script`_.
+Alternatively it is possible to execute the installed `robot module`__ or
+`robot directory`__ directly using the selected interpreter. The final
+alternative is using the `standalone JAR distribution`_.
 
 .. note::
-   Versions prior to Robot Framework 3.0 did not have ``robot`` starter script.
-   Instead they had Python interpreter specific scripts ``pybot``, ``jybot``,
-   and ``ipybot``, which are otherwise identical, but the first one executes
-   tests using Python_, the second using Jython_, and the last one using
-   IronPython_. These scripts are still installed in Robot Framework 3.0, but
-   the plan is to deprecate and finally remove them in the future.
+    Versions prior to Robot Framework 3.0 did not have the ``robot`` script.
+    Instead they had ``pybot``, ``jybot`` and ``ipybot`` scripts that executed
+    tests using Python, Jython and IronPython, respectively. These scripts are
+    still installed, but the plan is to deprecate and remove them in the future.
 
 Regardless of execution approach, the path (or paths) to the test data to be
 executed is given as an argument after the command. Additionally, different
 command line options can be used to alter the test execution or generated
-outputs in some way.
+outputs in many ways.
+
+__ `Executing installed robot module`_
+__ `Executing installed robot directory`_
 
 Specifying test data to be executed
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -67,9 +67,9 @@ __ `Test suite name and documentation`_
 
 ::
 
-   robot test_cases.html
+   robot tests.robot
    robot path/to/my_tests/
-   robot c:\robot\tests.txt
+   robot c:\robot\tests.robot
 
 It is also possible to give paths to several test case files or
 directories at once, separated with spaces. In this case, Robot
@@ -83,8 +83,8 @@ often quite long and complicated. In most cases, it is thus better to
 use the :option:`--name` option for overriding it, as in the second
 example below::
 
-   robot my_tests.html your_tests.html
-   robot --name Example path/to/tests/pattern_*.html
+   robot my_tests.robot your_tests.robot
+   robot --name Example path/to/tests/pattern_*.robot
 
 Using command line options
 --------------------------
@@ -101,7 +101,7 @@ Using options
 When options are used, they must always be given between the runner
 script and the data sources. For example::
 
-   robot -L debug my_tests.txt
+   robot -L debug my_tests.robot
    robot --include smoke --variable HOST:10.0.0.42 path/to/tests/
 
 Short and long options
@@ -228,12 +228,12 @@ post-processing`__, respectively. The options and their values must be
 defined as a space separated list and they are placed in front of any
 explicit options on the command line. The main use case for these
 environment variables is setting global default values for certain options to
-avoid the need to repeat them every time tests are run or ``rebot`` used.
+avoid the need to repeat them every time tests are run or Rebot used.
 
 .. sourcecode:: bash
 
    export ROBOT_OPTIONS="--critical regression --tagdoc 'mytag:Example doc with spaces'"
-   robot tests.txt
+   robot tests.robot
    export REBOT_OPTIONS="--reportbackground green:yellow:red"
    rebot --name example output.xml
 
@@ -324,7 +324,7 @@ the :option:`--NoStatusRC` command line option. This might be useful, for
 example, in continuous integration servers where post-processing of results
 is needed before the overall status of test execution can be determined.
 
-.. note:: Same return codes are also used with rebot_.
+.. note:: Same return codes are also used with Rebot_.
 
 Errors and warnings during execution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -345,7 +345,7 @@ Example below illustrates how errors and warnings look like in the log file.
      <tr>
        <td class="time">20090322&nbsp;19:58:42.528</td>
        <td class="error level">ERROR</td>
-       <td class="msg">Error in file '/home/robot/tests.html' in table 'Setting' in element on row 2: Resource file 'resource.html' does not exist</td>
+       <td class="msg">Error in file '/home/robot/tests.robot' in table 'Setting' in element on row 2: Resource file 'resource.robot' does not exist</td>
      </tr>
      <tr>
        <td class="time">20090322&nbsp;19:58:43.931</td>
@@ -464,10 +464,10 @@ option was. This means that options in argument files can override options
 before it, and its options can be overridden by options after it. It is possible
 to use :option:`--argumentfile` option multiple times or even recursively::
 
-   robot --argumentfile all_arguments.txt
-   robot --name Example --argumentfile other_options_and_paths.txt
-   robot --argumentfile default_options.txt --name Example my_tests.html
-   robot -A first.txt -A second.txt -A third.txt tests.txt
+   robot --argumentfile all_arguments.robot
+   robot --name Example --argumentfile other_options_and_paths.robot
+   robot --argumentfile default_options.txt --name Example my_tests.robot
+   robot -A first.txt -A second.txt -A third.txt tests.robot
 
 Reading argument files from standard input
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -477,7 +477,7 @@ standard input stream instead of a file. This can be useful when generating
 arguments with a script::
 
    generate_arguments.sh | robot --argumentfile STDIN
-   generate_arguments.sh | robot --name Example --argumentfile STDIN tests.txt
+   generate_arguments.sh | robot --name Example --argumentfile STDIN tests.robot
 
 Getting help and version information
 ------------------------------------
@@ -533,8 +533,8 @@ another:
 
 Implementing the above example with Windows batch files is not very
 complicated, either. The most important thing to remember is that
-because ``robot`` and ``rebot`` are implemented as batch
-files, ``call`` must be used when running them from another batch
+because ``robot`` and ``rebot`` scripts are implemented as batch files on
+Windows, ``call`` must be used when running them from another batch
 file. Otherwise execution would end when the first batch file is
 finished.
 
@@ -594,19 +594,16 @@ Modifying Java startup parameters
 Sometimes when using Jython there is need to alter the Java startup parameters.
 The most common use case is increasing the JVM maximum memory size as the
 default value may not be enough for creating reports and logs when
-outputs are very big. There are several ways to configure JVM options:
+outputs are very big. There are two easy ways to configure JVM options:
 
-1. Modify Jython start-up script (``jython`` shell script or
-   ``jython.bat`` batch file) directly. This is a permanent configuration.
-
-2. Set ``JYTHON_OPTS`` environment variable. This can be done permanently
+1. Set ``JYTHON_OPTS`` environment variable. This can be done permanently
    in operating system level or per execution in a custom start-up script.
 
-3. Pass the needed Java parameters wit :option:`-J` option to Jython start-up
-   script that will pass them forward to Java. This is especially easy when
-   using `direct entry points`_::
+2. Pass the needed Java parameters with :option:`-J` option to Jython that
+   will pass them forward to Java. This is especially easy when `executing
+   installed robot module`_ directly::
 
-      jython -J-Xmx1024m -m robot.run some_tests.txt
+      jython -J-Xmx1024m -m robot tests.robot
 
 Debugging problems
 ------------------

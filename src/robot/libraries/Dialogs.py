@@ -1,4 +1,5 @@
-#  Copyright 2008-2015 Nokia Solutions and Networks
+#  Copyright 2008-2015 Nokia Networks
+#  Copyright 2016-     Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -61,7 +62,7 @@ def execute_manual_step(message, default_error=''):
     ``default_error`` is the default value shown in the possible error message
     dialog.
     """
-    if not PassFailDialog(message).show():
+    if not _validate_user_input(PassFailDialog(message)):
         msg = get_value_from_user('Give error message:', default_error)
         raise AssertionError(msg)
 

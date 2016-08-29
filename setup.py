@@ -33,6 +33,7 @@ Operating System :: OS Independent
 Programming Language :: Python :: 2
 Programming Language :: Python :: 3
 Topic :: Software Development :: Testing
+Framework :: Robot Framework
 """.strip().splitlines()
 KEYWORDS = 'robotframework testing testautomation acceptancetesting atdd bdd'
 # Maximum width in Windows installer seems to be 70 characters -------|
@@ -64,9 +65,6 @@ else:
 SCRIPTS = [join('src', 'bin', s) for s in SCRIPTS + ['robot', 'rebot']]
 if WINDOWS:
     SCRIPTS = [s+'.bat' for s in SCRIPTS]
-if 'bdist_wininst' in sys.argv:
-    SCRIPTS.append('robot_postinstall.py')
-    LONG_DESCRIPTION = WINDOWS_DESCRIPTION
 
 
 class custom_install_scripts(install_scripts):
